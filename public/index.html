@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webサイトチェッカー</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <header>
+      <div class="logo-badge" aria-hidden="true">🔍</div>
       <h1>Webサイトチェッカー</h1>
       <p class="subtitle">title・meta description・見出し・画像altタグの設定状況をチェックします</p>
     </header>
@@ -26,15 +28,19 @@
 
     <p id="error-message" class="error-message" hidden></p>
 
-    <div id="loading" class="loading" hidden>チェック中...</div>
+    <div id="loading" class="loading" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      チェック中...
+    </div>
 
     <div id="result" class="result" hidden>
       <p class="checked-url">対象URL: <a id="result-url" href="#" target="_blank" rel="noopener"></a></p>
 
       <section class="check-card" id="title-card">
         <div class="check-card-header">
-          <span class="status-badge" id="title-status"></span>
+          <span class="card-icon" aria-hidden="true">🏷️</span>
           <h2>titleタグ</h2>
+          <span class="status-badge" id="title-status"></span>
         </div>
         <p class="check-content" id="title-content"></p>
         <p class="check-meta" id="title-meta"></p>
@@ -42,8 +48,9 @@
 
       <section class="check-card" id="description-card">
         <div class="check-card-header">
-          <span class="status-badge" id="description-status"></span>
+          <span class="card-icon" aria-hidden="true">📝</span>
           <h2>meta description</h2>
+          <span class="status-badge" id="description-status"></span>
         </div>
         <p class="check-content" id="description-content"></p>
         <p class="check-meta" id="description-meta"></p>
@@ -51,8 +58,9 @@
 
       <section class="check-card" id="headings-card">
         <div class="check-card-header">
-          <span class="status-badge" id="headings-status"></span>
+          <span class="card-icon" aria-hidden="true">🔠</span>
           <h2>見出しタグ</h2>
+          <span class="status-badge" id="headings-status"></span>
         </div>
         <p class="check-content" id="headings-content"></p>
         <p class="check-meta" id="headings-meta"></p>
@@ -60,8 +68,9 @@
 
       <section class="check-card" id="images-card">
         <div class="check-card-header">
-          <span class="status-badge" id="images-status"></span>
+          <span class="card-icon" aria-hidden="true">🖼️</span>
           <h2>画像altタグ</h2>
+          <span class="status-badge" id="images-status"></span>
         </div>
         <p class="check-content" id="images-content"></p>
         <p class="check-meta" id="images-meta"></p>

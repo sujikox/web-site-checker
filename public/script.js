@@ -14,26 +14,26 @@ const STATUS_LABEL = {
   warn: { text: '要確認', className: 'warn' },
 };
 
-function renderCheck(prefix, data) {
+function setStatusBadge(prefix, statusKey) {
+  const cardEl = document.getElementById(`${prefix}-card`);
   const statusEl = document.getElementById(`${prefix}-status`);
-  const contentEl = document.getElementById(`${prefix}-content`);
-  const metaEl = document.getElementById(`${prefix}-meta`);
+  const status = STATUS_LABEL[statusKey] || STATUS_LABEL.missing;
 
-  const status = STATUS_LABEL[data.status] || STATUS_LABEL.missing;
   statusEl.textContent = status.text;
   statusEl.className = `status-badge ${status.className}`;
+  cardEl.className = `check-card status-${status.className}`;
+}
+
+function renderCheck(prefix, data) {
+  setStatusBadge(prefix, data.status);
+
+  const contentEl = document.getElementById(`${prefix}-content`);
+  const metaEl = document.getElementById(`${prefix}-meta`);
 
   contentEl.textContent = data.exists ? data.content : '(設定されていません)';
 
   metaEl.textContent =
     `文字数: ${data.length}文字 / 目安: ${data.recommended.min}〜${data.recommended.max}文字`;
-}
-
-function setStatusBadge(prefix, statusKey) {
-  const statusEl = document.getElementById(`${prefix}-status`);
-  const status = STATUS_LABEL[statusKey] || STATUS_LABEL.missing;
-  statusEl.textContent = status.text;
-  statusEl.className = `status-badge ${status.className}`;
 }
 
 function renderHeadings(data) {
@@ -67,6 +67,8 @@ function renderImages(data) {
 
   if (data.total === 0) {
     contentEl.textContent = '(画像が見つかりません)';
+  } else if (data.missingAltCount === 0) {
+    contentEl.textContent = `すべての画像にalt属性が設定されています(全${data.total}枚)`;
   } else {
     contentEl.textContent = `alt属性が設定されていない画像タグ: ${data.missingAltCount}件(全${data.total}枚中)`;
   }

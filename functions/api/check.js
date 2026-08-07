@@ -31,9 +31,16 @@ function evaluateLength(length, min, max) {
 function checkHeadings($) {
   const outline = [];
   $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    let text = $(el).text().trim().replace(/\s+/g, ' ');
+    if (!text) {
+      const imgAlt = $(el).find('img').first().attr('alt')?.trim();
+      if (imgAlt) {
+        text = `(alt: ${imgAlt})`;
+      }
+    }
     outline.push({
       level: Number(el.tagName.slice(1)),
-      text: $(el).text().trim().replace(/\s+/g, ' '),
+      text,
     });
   });
 
