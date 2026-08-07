@@ -183,6 +183,19 @@ function renderOgp(data, pageUrl) {
   metaEl.textContent = data.issues.join('\n');
 }
 
+function renderCanonical(data) {
+  setStatusBadge('canonical', data.status);
+
+  const contentEl = document.getElementById('canonical-content');
+  const metaEl = document.getElementById('canonical-meta');
+
+  contentEl.textContent = data.exists
+    ? (data.url || data.content || '(hrefが空です)')
+    : '(canonicalタグが見つかりません)';
+
+  metaEl.textContent = data.issues.join('\n');
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -216,6 +229,7 @@ form.addEventListener('submit', async (e) => {
     renderImages(data.images);
     renderFavicon(data.favicon);
     renderOgp(data.ogp, data.url);
+    renderCanonical(data.canonical);
 
     result.hidden = false;
   } catch (err) {

@@ -210,6 +210,56 @@ async function checkOgp($, targetUrl) {
   };
 }
 
+async function checkCanonical($, targetUrl) {
+  const links = $('link[rel="canonical"]');
+  const count = links.length;
+
+  if (count === 0) {
+    return {
+      exists: false,
+      content: '',
+      url: null,
+      matchesCurrentUrl: false,
+      count: 0,
+      issues: ['canonical URLが設定されていません'],
+      status: 'missing',
+    };
+  }
+
+  const issues = [];
+  if (count > 1) {
+    issues.push(`canonicalタグが${count}個あります(通常は1個にすべきです)`);
+  }
+
+  const href = links.first().attr('href')?.trim() || '';
+  if (!href) {
+    issues.push('canonicalタグにhrefが指定されていません');
+    return { exists: true, content: href, url: null, matchesCurrentUrl: false, count, issues, status: 'warn' };
+  }
+
+  let canonicalUrl;
+  try {
+    canonicalUrl = new URL(href, targetUrl).toString();
+  } catch {
+    issues.push('canonical URLの形式が正しくありません');
+    return { exists: true, content: href, url: null, matchesCurrentUrl: false, count, issues, status: 'warn' };
+  }
+
+  const matchesCurrentUrl = canonicalUrl === targetUrl;
+
+  if (!matchesCurrentUrl) {
+    issues.push('現在のURLとは異なるページを正規URLとして指定しています');
+    const accessible = await urlExists(canonicalUrl);
+    if (!accessible) {
+      issues.push('指定された正規URLにアクセスできません');
+    }
+  }
+
+  const status = issues.length === 0 ? 'ok' : 'warn';
+
+  return { exists: true, content: href, url: canonicalUrl, matchesCurrentUrl, count, issues, status };
+}
+
 async function fetchHtml(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -286,6 +336,7 @@ export async function onRequestPost({ request }) {
       images: checkImages($),
       favicon: await checkFavicon($, targetUrl),
       ogp: await checkOgp($, targetUrl),
+      canonical: await checkCanonical($, targetUrl),
     };
 
     return jsonResponse(result, 200);
