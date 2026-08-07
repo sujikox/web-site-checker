@@ -294,6 +294,91 @@ async function checkOgp($, targetUrl) {
   };
 }
 
+function checkMetaRobots($) {
+  const content = $('meta[name="robots"]').first().attr('content')?.trim() || '';
+  const exists = content.length > 0;
+  const directives = content
+    ? content.split(',').map((d) => d.trim().toLowerCase()).filter(Boolean)
+    : [];
+
+  const hasNoindex = directives.includes('noindex') || directives.includes('none');
+  const hasNofollow = directives.includes('nofollow') || directives.includes('none');
+
+  const issues = [];
+  let status;
+  if (hasNoindex) {
+    issues.push('noindexが指定されているため、検索エンジンにインデックスされません');
+    status = 'noindex';
+  } else if (hasNofollow) {
+    issues.push('nofollowが指定されているため、このページのリンクが評価されません');
+    status = 'warn';
+  } else {
+    status = 'ok';
+  }
+
+  return { exists, content, directives, hasNoindex, hasNofollow, issues, status };
+}
+
+async function checkTwitterCard($, targetUrl, ogp) {
+  const getMeta = (name) => $(`meta[name="${name}"]`).first().attr('content')?.trim() || '';
+
+  const card = getMeta('twitter:card');
+  let title = getMeta('twitter:title');
+  let description = getMeta('twitter:description');
+  let image = getMeta('twitter:image') || getMeta('twitter:image:src');
+  const site = getMeta('twitter:site');
+
+  const usesOgpFallback = { title: false, description: false, image: false };
+  if (!title && ogp.title) { title = ogp.title; usesOgpFallback.title = true; }
+  if (!description && ogp.description) { description = ogp.description; usesOgpFallback.description = true; }
+  if (!image && ogp.image) { image = ogp.image; usesOgpFallback.image = true; }
+
+  const issues = [];
+  if (!card) issues.push('twitter:cardが設定されていません');
+  if (!title) issues.push('twitter:title(またはog:title)が設定されていません');
+  if (!description) issues.push('twitter:description(またはog:description)が設定されていません');
+  if (!image) issues.push('twitter:image(またはog:image)が設定されていません');
+
+  let imageUrl = null;
+  let imageAccessible = false;
+  if (image) {
+    try {
+      imageUrl = new URL(image, targetUrl).toString();
+      imageAccessible = await urlExists(imageUrl);
+      if (!imageAccessible) issues.push('twitter:imageの画像を取得できません');
+    } catch {
+      imageUrl = null;
+      issues.push('twitter:imageのURL形式が正しくありません');
+    }
+  }
+
+  const exists = Boolean(card || title || description || image || site);
+  const hasCore = Boolean(card && title && description && image);
+
+  let status;
+  if (!exists) {
+    status = 'missing';
+  } else if (hasCore && imageAccessible) {
+    status = 'ok';
+  } else {
+    status = 'warn';
+  }
+
+  return {
+    exists,
+    card,
+    title,
+    description,
+    image,
+    imageUrl,
+    imageAccessible,
+    site,
+    usesOgpFallback,
+    issues,
+    status,
+  };
+}
+
 async function checkCanonical($, targetUrl) {
   const links = $('link[rel="canonical"]');
   const count = links.length;
@@ -399,6 +484,7 @@ export async function onRequestPost({ request }) {
 
     const title = $('title').first().text().trim();
     const description = $('meta[name="description"]').attr('content')?.trim() || '';
+    const ogp = await checkOgp($, targetUrl);
 
     const result = {
       url: targetUrl,
@@ -420,9 +506,11 @@ export async function onRequestPost({ request }) {
       images: checkImages($),
       imageFormats: checkImageFormats($),
       favicon: await checkFavicon($, targetUrl),
-      ogp: await checkOgp($, targetUrl),
+      ogp,
+      twitterCard: await checkTwitterCard($, targetUrl, ogp),
       canonical: await checkCanonical($, targetUrl),
       jsonLd: checkJsonLd($),
+      robots: checkMetaRobots($),
     };
 
     return jsonResponse(result, 200);

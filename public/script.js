@@ -14,6 +14,7 @@ const STATUS_LABEL = {
   too_long: { text: '長すぎる', className: 'warn' },
   missing: { text: '未設定', className: 'ng' },
   warn: { text: '要確認', className: 'warn' },
+  noindex: { text: 'noindex検出', className: 'ng' },
 };
 
 function setStatusBadge(prefix, statusKey) {
@@ -171,16 +172,16 @@ function renderFavicon(data) {
     : '';
 }
 
-function renderOgp(data, pageUrl) {
-  setStatusBadge('ogp', data.status);
+function renderSharePreview(prefix, data, previewUrl, emptyText, noTitleText, noDescriptionText) {
+  setStatusBadge(prefix, data.status);
 
-  const contentEl = document.getElementById('ogp-content');
-  const metaEl = document.getElementById('ogp-meta');
+  const contentEl = document.getElementById(`${prefix}-content`);
+  const metaEl = document.getElementById(`${prefix}-meta`);
 
   contentEl.textContent = '';
 
   if (!data.exists) {
-    contentEl.textContent = '(OGPタグが設定されていません)';
+    contentEl.textContent = emptyText;
     metaEl.textContent = '';
     return;
   }
@@ -192,7 +193,7 @@ function renderOgp(data, pageUrl) {
     const img = document.createElement('img');
     img.className = 'ogp-image';
     img.src = data.imageUrl;
-    img.alt = 'OGP画像プレビュー';
+    img.alt = 'プレビュー画像';
     img.onerror = () => img.remove();
     preview.append(img);
   }
@@ -203,24 +204,46 @@ function renderOgp(data, pageUrl) {
   const domain = document.createElement('div');
   domain.className = 'ogp-domain';
   try {
-    domain.textContent = new URL(data.url || pageUrl).hostname;
+    domain.textContent = new URL(previewUrl).hostname;
   } catch {
     domain.textContent = '';
   }
 
   const titleEl = document.createElement('div');
   titleEl.className = 'ogp-title';
-  titleEl.textContent = data.title || '(og:title未設定)';
+  titleEl.textContent = data.title || noTitleText;
 
   const descEl = document.createElement('div');
   descEl.className = 'ogp-description';
-  descEl.textContent = data.description || '(og:description未設定)';
+  descEl.textContent = data.description || noDescriptionText;
 
   body.append(domain, titleEl, descEl);
   preview.append(body);
   contentEl.append(preview);
 
   metaEl.textContent = data.issues.join('\n');
+}
+
+function renderOgp(data, pageUrl) {
+  renderSharePreview(
+    'ogp',
+    data,
+    data.url || pageUrl,
+    '(OGPタグが設定されていません)',
+    '(og:title未設定)',
+    '(og:description未設定)',
+  );
+}
+
+function renderTwitterCard(data, pageUrl) {
+  renderSharePreview(
+    'twitter',
+    data,
+    pageUrl,
+    '(Twitter Cardタグが設定されていません)',
+    '(タイトル未設定)',
+    '(説明文未設定)',
+  );
 }
 
 function renderCanonical(data) {
@@ -254,6 +277,19 @@ function renderJsonLd(data) {
       return `${item.index}番目: ${item.types.length > 0 ? item.types.join(', ') : '(@typeなし)'}`;
     })
     .join('\n');
+
+  metaEl.textContent = data.issues.join('\n');
+}
+
+function renderRobots(data) {
+  setStatusBadge('robots', data.status);
+
+  const contentEl = document.getElementById('robots-content');
+  const metaEl = document.getElementById('robots-meta');
+
+  contentEl.textContent = data.exists
+    ? data.content
+    : '(meta robotsタグは設定されていません = index, follow 扱い)';
 
   metaEl.textContent = data.issues.join('\n');
 }
@@ -292,8 +328,10 @@ form.addEventListener('submit', async (e) => {
     renderImageFormats(data.imageFormats);
     renderFavicon(data.favicon);
     renderOgp(data.ogp, data.url);
+    renderTwitterCard(data.twitterCard, data.url);
     renderCanonical(data.canonical);
     renderJsonLd(data.jsonLd);
+    renderRobots(data.robots);
 
     result.hidden = false;
   } catch (err) {
