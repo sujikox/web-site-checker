@@ -1,9 +1,5 @@
-const path = require('path');
-const express = require('express');
-const cheerio = require('cheerio');
+import * as cheerio from 'cheerio';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
 const FETCH_TIMEOUT_MS = 10000;
 
 // SEO上の目安となる文字数の範囲(一般的に言われている基準)
@@ -11,9 +7,6 @@ const TITLE_MIN = 30;
 const TITLE_MAX = 60;
 const DESCRIPTION_MIN = 70;
 const DESCRIPTION_MAX = 160;
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
 function normalizeUrl(input) {
   let url;
@@ -64,18 +57,24 @@ async function fetchHtml(url) {
   }
 }
 
-app.post('/api/check', async (req, res) => {
-  const inputUrl = (req.body && req.body.url || '').trim();
+export async function onRequestPost({ request }) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: 'リクエストの形式が正しくありません' }, 400);
+  }
 
+  const inputUrl = (body && body.url || '').trim();
   if (!inputUrl) {
-    return res.status(400).json({ error: 'URLを入力してください' });
+    return jsonResponse({ error: 'URLを入力してください' }, 400);
   }
 
   let targetUrl;
   try {
     targetUrl = normalizeUrl(inputUrl);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    return jsonResponse({ error: err.message }, 400);
   }
 
   try {
@@ -103,12 +102,15 @@ app.post('/api/check', async (req, res) => {
       },
     };
 
-    res.json(result);
+    return jsonResponse(result, 200);
   } catch (err) {
-    res.status(502).json({ error: err.message || 'チェック中にエラーが発生しました' });
+    return jsonResponse({ error: err.message || 'チェック中にエラーが発生しました' }, 502);
   }
-});
+}
 
-app.listen(PORT, () => {
-  console.log(`Web Site Checker running at http://localhost:${PORT}`);
-});
+function jsonResponse(data, status) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
