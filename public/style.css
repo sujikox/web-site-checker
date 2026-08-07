@@ -63,12 +63,6 @@ header {
   margin-bottom: 36px;
 }
 
-.logo-badge {
-  font-size: 2.25rem;
-  line-height: 1;
-  margin-bottom: 10px;
-}
-
 h1 {
   font-size: 1.75rem;
   font-weight: 700;
@@ -153,6 +147,10 @@ h1 {
   font-size: 0.9rem;
 }
 
+.loading[hidden] {
+  display: none;
+}
+
 .spinner {
   width: 18px;
   height: 18px;
@@ -219,11 +217,6 @@ h1 {
   margin-bottom: 10px;
 }
 
-.card-icon {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
 .check-card-header h2 {
   font-size: 0.95rem;
   font-weight: 600;
@@ -274,8 +267,40 @@ h1 {
 }
 
 #headings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.h-tag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 7px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-muted);
+}
+
+.check-card.status-ok .h-tag { background: var(--color-ok); }
+.check-card.status-warn .h-tag { background: var(--color-warn); }
+.check-card.status-ng .h-tag { background: var(--color-ng); }
+
+.h-text {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .check-meta {

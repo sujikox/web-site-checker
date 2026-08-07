@@ -42,12 +42,27 @@ function renderHeadings(data) {
   const contentEl = document.getElementById('headings-content');
   const metaEl = document.getElementById('headings-meta');
 
+  contentEl.textContent = '';
+
   if (data.outline.length === 0) {
     contentEl.textContent = '(見出しタグが見つかりません)';
   } else {
-    contentEl.textContent = data.outline
-      .map((h) => `${'  '.repeat(h.level - 1)}<h${h.level}>${h.text || '(テキストなし)'}</h${h.level}>`)
-      .join('\n');
+    data.outline.forEach((h) => {
+      const row = document.createElement('div');
+      row.className = 'heading-row';
+      row.style.marginLeft = `${(h.level - 1) * 22}px`;
+
+      const tag = document.createElement('span');
+      tag.className = 'h-tag';
+      tag.textContent = `h${h.level}`;
+
+      const text = document.createElement('span');
+      text.className = 'h-text';
+      text.textContent = h.text || '(テキストなし)';
+
+      row.append(tag, text);
+      contentEl.append(row);
+    });
   }
 
   const counts = [1, 2, 3, 4, 5, 6]
