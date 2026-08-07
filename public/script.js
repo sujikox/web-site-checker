@@ -11,6 +11,7 @@ const STATUS_LABEL = {
   too_short: { text: '短すぎる', className: 'warn' },
   too_long: { text: '長すぎる', className: 'warn' },
   missing: { text: '未設定', className: 'ng' },
+  warn: { text: '要確認', className: 'warn' },
 };
 
 function renderCheck(prefix, data) {
@@ -26,6 +27,56 @@ function renderCheck(prefix, data) {
 
   metaEl.textContent =
     `文字数: ${data.length}文字 / 目安: ${data.recommended.min}〜${data.recommended.max}文字`;
+}
+
+function setStatusBadge(prefix, statusKey) {
+  const statusEl = document.getElementById(`${prefix}-status`);
+  const status = STATUS_LABEL[statusKey] || STATUS_LABEL.missing;
+  statusEl.textContent = status.text;
+  statusEl.className = `status-badge ${status.className}`;
+}
+
+function renderHeadings(data) {
+  setStatusBadge('headings', data.status);
+
+  const contentEl = document.getElementById('headings-content');
+  const metaEl = document.getElementById('headings-meta');
+
+  if (data.outline.length === 0) {
+    contentEl.textContent = '(見出しタグが見つかりません)';
+  } else {
+    contentEl.textContent = data.outline
+      .map((h) => `${'　'.repeat(h.level - 1)}H${h.level}: ${h.text || '(テキストなし)'}`)
+      .join('\n');
+  }
+
+  const counts = [1, 2, 3, 4, 5, 6]
+    .map((level) => ({ level, count: data.outline.filter((h) => h.level === level).length }))
+    .filter((c) => c.count > 0)
+    .map((c) => `h${c.level}: ${c.count}個`)
+    .join(' / ');
+
+  metaEl.textContent = [counts, ...data.issues].filter(Boolean).join('\n');
+}
+
+function renderImages(data) {
+  setStatusBadge('images', data.status);
+
+  const contentEl = document.getElementById('images-content');
+  const metaEl = document.getElementById('images-meta');
+
+  if (data.total === 0) {
+    contentEl.textContent = '(画像が見つかりません)';
+  } else if (data.missingAltSamples.length === 0) {
+    contentEl.textContent = 'すべての画像にaltが設定されています';
+  } else {
+    contentEl.textContent = data.missingAltSamples
+      .map((img) => `${img.index}枚目: ${img.src}`)
+      .join('\n');
+  }
+
+  metaEl.textContent =
+    `画像数: ${data.total}枚 / alt未設定: ${data.missingAltCount}枚`;
 }
 
 form.addEventListener('submit', async (e) => {
@@ -57,6 +108,8 @@ form.addEventListener('submit', async (e) => {
 
     renderCheck('title', data.title);
     renderCheck('description', data.description);
+    renderHeadings(data.headings);
+    renderImages(data.images);
 
     result.hidden = false;
   } catch (err) {

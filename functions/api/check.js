@@ -28,6 +28,68 @@ function evaluateLength(length, min, max) {
   return 'ok';
 }
 
+function checkHeadings($) {
+  const outline = [];
+  $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    outline.push({
+      level: Number(el.tagName.slice(1)),
+      text: $(el).text().trim().replace(/\s+/g, ' '),
+    });
+  });
+
+  const h1Count = outline.filter((h) => h.level === 1).length;
+  const issues = [];
+
+  if (h1Count === 0) {
+    issues.push('h1が見つかりません');
+  } else if (h1Count > 1) {
+    issues.push(`h1が${h1Count}個あります(通常は1個が推奨)`);
+  }
+
+  let prevLevel = 0;
+  for (const h of outline) {
+    if (prevLevel !== 0 && h.level > prevLevel + 1) {
+      issues.push(`見出しの階層が飛んでいます(h${prevLevel} → h${h.level})`);
+    }
+    prevLevel = h.level;
+  }
+
+  let status;
+  if (h1Count === 0) {
+    status = 'missing';
+  } else if (issues.length > 0) {
+    status = 'warn';
+  } else {
+    status = 'ok';
+  }
+
+  return { outline, h1Count, issues, status };
+}
+
+function checkImages($) {
+  const images = $('img');
+  const total = images.length;
+  const missingAltSamples = [];
+  let missingAltCount = 0;
+
+  images.each((index, el) => {
+    const alt = $(el).attr('alt');
+    if (alt === undefined || alt.trim() === '') {
+      missingAltCount += 1;
+      if (missingAltSamples.length < 5) {
+        missingAltSamples.push({
+          index: index + 1,
+          src: $(el).attr('src') || '(srcなし)',
+        });
+      }
+    }
+  });
+
+  const status = missingAltCount === 0 ? 'ok' : 'warn';
+
+  return { total, missingAltCount, missingAltSamples, status };
+}
+
 async function fetchHtml(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -100,6 +162,8 @@ export async function onRequestPost({ request }) {
         status: evaluateLength(description.length, DESCRIPTION_MIN, DESCRIPTION_MAX),
         recommended: { min: DESCRIPTION_MIN, max: DESCRIPTION_MAX },
       },
+      headings: checkHeadings($),
+      images: checkImages($),
     };
 
     return jsonResponse(result, 200);
