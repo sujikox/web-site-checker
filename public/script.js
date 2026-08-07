@@ -5,6 +5,8 @@ const errorMessage = document.getElementById('error-message');
 const loading = document.getElementById('loading');
 const result = document.getElementById('result');
 const resultUrl = document.getElementById('result-url');
+const promptContent = document.getElementById('prompt-content');
+const copyPromptButton = document.getElementById('copy-prompt-button');
 
 document.getElementById('footer-year').textContent = new Date().getFullYear();
 
@@ -294,6 +296,108 @@ function renderRobots(data) {
   metaEl.textContent = data.issues.join('\n');
 }
 
+function buildImprovementPrompt(data) {
+  const problems = [];
+
+  if (data.title.status !== 'ok') {
+    problems.push([
+      'titleタグ',
+      `現状: ${data.title.exists ? `"${data.title.content}"(${data.title.length}文字)` : '未設定'}`,
+      `目安: ${data.title.recommended.min}〜${data.title.recommended.max}文字`,
+    ].join('\n'));
+  }
+
+  if (data.description.status !== 'ok') {
+    problems.push([
+      'meta description',
+      `現状: ${data.description.exists ? `"${data.description.content}"(${data.description.length}文字)` : '未設定'}`,
+      `目安: ${data.description.recommended.min}〜${data.description.recommended.max}文字`,
+    ].join('\n'));
+  }
+
+  if (data.headings.status !== 'ok') {
+    problems.push(['見出しタグ(h1〜h6)', ...data.headings.issues].join('\n'));
+  }
+
+  if (data.images.status !== 'ok') {
+    problems.push([
+      '画像alt属性',
+      `alt未設定: ${data.images.missingAltCount}枚 / 全${data.images.total}枚`,
+    ].join('\n'));
+  }
+
+  if (data.imageFormats.status !== 'ok') {
+    problems.push([
+      '画像フォーマット',
+      `JPG/PNG画像が${data.imageFormats.legacyCount}枚あります。WebPへの変換を検討してください。`,
+    ].join('\n'));
+  }
+
+  if (data.favicon.status !== 'ok') {
+    problems.push(['favicon', 'faviconが見つかりません。設定を検討してください。'].join('\n'));
+  }
+
+  if (data.ogp.status !== 'ok') {
+    problems.push(['OGP', ...data.ogp.issues].join('\n'));
+  }
+
+  if (data.twitterCard.status !== 'ok') {
+    problems.push(['Twitter Card', ...data.twitterCard.issues].join('\n'));
+  }
+
+  if (data.canonical.status !== 'ok') {
+    problems.push(['canonical URL', ...data.canonical.issues].join('\n'));
+  }
+
+  if (data.jsonLd.status !== 'ok') {
+    problems.push(['構造化データ(JSON-LD)', ...data.jsonLd.issues].join('\n'));
+  }
+
+  if (data.robots.status !== 'ok') {
+    problems.push(['meta robots', ...data.robots.issues].join('\n'));
+  }
+
+  if (problems.length === 0) {
+    return [
+      `対象URL: ${data.url}`,
+      '',
+      'このサイトは今回のチェック項目(title, meta description, 見出し, 画像alt, 画像フォーマット, favicon, OGP, Twitter Card, canonical, 構造化データ, meta robots)すべてで問題は見つかりませんでした。',
+    ].join('\n');
+  }
+
+  return [
+    '以下のWebサイトについて、チェックツールで見つかった問題点を修正してください。',
+    '',
+    `対象URL: ${data.url}`,
+    '',
+    '# 改善が必要な項目',
+    '',
+    problems.map((p) => `## ${p}`).join('\n\n'),
+  ].join('\n');
+}
+
+function renderPrompt(data) {
+  promptContent.textContent = buildImprovementPrompt(data);
+}
+
+copyPromptButton.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(promptContent.textContent);
+    const original = copyPromptButton.textContent;
+    copyPromptButton.textContent = 'コピーしました';
+    copyPromptButton.disabled = true;
+    setTimeout(() => {
+      copyPromptButton.textContent = original;
+      copyPromptButton.disabled = false;
+    }, 2000);
+  } catch {
+    copyPromptButton.textContent = 'コピーできませんでした';
+    setTimeout(() => {
+      copyPromptButton.textContent = 'プロンプトをコピー';
+    }, 2000);
+  }
+});
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -332,6 +436,7 @@ form.addEventListener('submit', async (e) => {
     renderCanonical(data.canonical);
     renderJsonLd(data.jsonLd);
     renderRobots(data.robots);
+    renderPrompt(data);
 
     result.hidden = false;
   } catch (err) {

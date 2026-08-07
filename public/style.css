@@ -394,3 +394,69 @@ h1 {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.prompt-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-top: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.prompt-header h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.prompt-description {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 0 0 12px;
+}
+
+.copy-button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--color-primary);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.copy-button:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.copy-button:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.prompt-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  background: var(--color-bg);
+  border-radius: 8px;
+  padding: 14px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+}
