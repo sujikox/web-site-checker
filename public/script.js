@@ -6,6 +6,8 @@ const loading = document.getElementById('loading');
 const result = document.getElementById('result');
 const resultUrl = document.getElementById('result-url');
 
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
 const STATUS_LABEL = {
   ok: { text: 'OK', className: 'ok' },
   too_short: { text: '短すぎる', className: 'warn' },

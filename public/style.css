@@ -55,7 +55,23 @@ body {
 .container {
   max-width: 640px;
   margin: 0 auto;
-  padding: 56px 20px 80px;
+  padding: 56px 20px 40px;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 24px 20px 40px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.site-footer a {
+  color: var(--color-muted);
+  text-decoration: underline;
+}
+
+.site-footer a:hover {
+  color: var(--color-primary);
 }
 
 header {
