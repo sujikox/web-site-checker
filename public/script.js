@@ -236,6 +236,28 @@ function renderCanonical(data) {
   metaEl.textContent = data.issues.join('\n');
 }
 
+function renderJsonLd(data) {
+  setStatusBadge('json-ld', data.status);
+
+  const contentEl = document.getElementById('json-ld-content');
+  const metaEl = document.getElementById('json-ld-meta');
+
+  if (!data.exists) {
+    contentEl.textContent = '(JSON-LDが見つかりません)';
+    metaEl.textContent = '';
+    return;
+  }
+
+  contentEl.textContent = data.items
+    .map((item) => {
+      if (!item.valid) return `${item.index}番目: JSON形式エラー`;
+      return `${item.index}番目: ${item.types.length > 0 ? item.types.join(', ') : '(@typeなし)'}`;
+    })
+    .join('\n');
+
+  metaEl.textContent = data.issues.join('\n');
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -271,6 +293,7 @@ form.addEventListener('submit', async (e) => {
     renderFavicon(data.favicon);
     renderOgp(data.ogp, data.url);
     renderCanonical(data.canonical);
+    renderJsonLd(data.jsonLd);
 
     result.hidden = false;
   } catch (err) {

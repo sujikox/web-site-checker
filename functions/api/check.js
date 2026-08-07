@@ -134,6 +134,55 @@ function checkImageFormats($) {
   return { total, counts, legacyCount, legacySamples, status };
 }
 
+function extractJsonLdTypes(parsed) {
+  const nodes = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.['@graph'])
+      ? parsed['@graph']
+      : [parsed];
+
+  return nodes.flatMap((node) => {
+    const type = node?.['@type'];
+    if (!type) return [];
+    return Array.isArray(type) ? type : [type];
+  });
+}
+
+function checkJsonLd($) {
+  const scripts = $('script[type="application/ld+json"]');
+  const count = scripts.length;
+
+  if (count === 0) {
+    return { exists: false, count: 0, items: [], issues: ['JSON-LDが見つかりません'], status: 'missing' };
+  }
+
+  const items = [];
+  const issues = [];
+
+  scripts.each((index, el) => {
+    const raw = ($(el).html() || '').trim();
+    let valid = true;
+    let types = [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      types = extractJsonLdTypes(parsed);
+      if (types.length === 0) {
+        issues.push(`${index + 1}番目のJSON-LDに @type が見つかりません`);
+      }
+    } catch {
+      valid = false;
+      issues.push(`${index + 1}番目のJSON-LDはJSON形式が正しくありません`);
+    }
+
+    items.push({ index: index + 1, valid, types });
+  });
+
+  const status = issues.length === 0 ? 'ok' : 'warn';
+
+  return { exists: true, count, items, issues, status };
+}
+
 async function urlExists(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FAVICON_TIMEOUT_MS);
@@ -373,6 +422,7 @@ export async function onRequestPost({ request }) {
       favicon: await checkFavicon($, targetUrl),
       ogp: await checkOgp($, targetUrl),
       canonical: await checkCanonical($, targetUrl),
+      jsonLd: checkJsonLd($),
     };
 
     return jsonResponse(result, 200);
