@@ -1,0 +1,17 @@
+{
+  "name": "web-site-checker",
+  "version": "1.0.0",
+  "description": "Webサイトのtitleタグ・meta descriptionをチェックするツール",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

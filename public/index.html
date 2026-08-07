@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webサイトチェッカー</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Webサイトチェッカー</h1>
+      <p class="subtitle">titleタグ・meta descriptionの設定状況をチェックします</p>
+    </header>
+
+    <form id="check-form" class="check-form">
+      <input
+        type="text"
+        id="url-input"
+        placeholder="https://example.com"
+        autocomplete="off"
+        required
+      >
+      <button type="submit" id="check-button">チェック</button>
+    </form>
+
+    <p id="error-message" class="error-message" hidden></p>
+
+    <div id="loading" class="loading" hidden>チェック中...</div>
+
+    <div id="result" class="result" hidden>
+      <p class="checked-url">対象URL: <a id="result-url" href="#" target="_blank" rel="noopener"></a></p>
+
+      <section class="check-card" id="title-card">
+        <div class="check-card-header">
+          <span class="status-badge" id="title-status"></span>
+          <h2>titleタグ</h2>
+        </div>
+        <p class="check-content" id="title-content"></p>
+        <p class="check-meta" id="title-meta"></p>
+      </section>
+
+      <section class="check-card" id="description-card">
+        <div class="check-card-header">
+          <span class="status-badge" id="description-status"></span>
+          <h2>meta description</h2>
+        </div>
+        <p class="check-content" id="description-content"></p>
+        <p class="check-meta" id="description-meta"></p>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

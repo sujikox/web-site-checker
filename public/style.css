@@ -1,0 +1,157 @@
+:root {
+  --color-bg: #f5f6f8;
+  --color-card: #ffffff;
+  --color-border: #e2e4e8;
+  --color-text: #1f2328;
+  --color-muted: #656d76;
+  --color-primary: #2563eb;
+  --color-ok: #1a7f37;
+  --color-warn: #9a6700;
+  --color-ng: #cf222e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 8px;
+}
+
+.subtitle {
+  color: var(--color-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.check-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+#url-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+#url-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
+#check-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#check-button:hover {
+  background: #1d4ed8;
+}
+
+#check-button:disabled {
+  background: #93b4f0;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: var(--color-ng);
+  background: #fff0f0;
+  border: 1px solid #ffd7d5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 20px 0;
+}
+
+.checked-url {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  word-break: break-all;
+  margin-bottom: 20px;
+}
+
+.checked-url a {
+  color: var(--color-primary);
+}
+
+.check-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.check-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.check-card-header h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status-badge.ok { background: var(--color-ok); }
+.status-badge.warn { background: var(--color-warn); }
+.status-badge.ng { background: var(--color-ng); }
+
+.check-content {
+  font-size: 0.95rem;
+  background: var(--color-bg);
+  border-radius: 6px;
+  padding: 10px 12px;
+  word-break: break-word;
+  white-space: pre-wrap;
+  min-height: 1.2em;
+}
+
+.check-meta {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 8px 0 0;
+}
