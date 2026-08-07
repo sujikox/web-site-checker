@@ -134,6 +134,33 @@ function checkImageFormats($) {
   return { total, counts, legacyCount, legacySamples, status };
 }
 
+function checkLazyLoading($) {
+  const images = $('img');
+  const total = images.length;
+  const checkedCount = Math.max(total - 1, 0);
+  const missingLazySamples = [];
+  let missingLazyCount = 0;
+
+  images.each((index, el) => {
+    if (index === 0) return;
+
+    const loading = ($(el).attr('loading') || '').trim().toLowerCase();
+    if (loading !== 'lazy') {
+      missingLazyCount += 1;
+      if (missingLazySamples.length < 5) {
+        missingLazySamples.push({
+          index: index + 1,
+          src: $(el).attr('src') || '(srcなし)',
+        });
+      }
+    }
+  });
+
+  const status = missingLazyCount > 0 ? 'warn' : 'ok';
+
+  return { total, checkedCount, missingLazyCount, missingLazySamples, status };
+}
+
 function extractJsonLdTypes(parsed) {
   const nodes = Array.isArray(parsed)
     ? parsed
@@ -505,6 +532,7 @@ export async function onRequestPost({ request }) {
       headings: checkHeadings($),
       images: checkImages($),
       imageFormats: checkImageFormats($),
+      lazyLoading: checkLazyLoading($),
       favicon: await checkFavicon($, targetUrl),
       ogp,
       twitterCard: await checkTwitterCard($, targetUrl, ogp),

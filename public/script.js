@@ -138,6 +138,37 @@ function renderImageFormats(data) {
   }
 }
 
+function renderLazyLoading(data) {
+  setStatusBadge('lazy-loading', data.status);
+
+  const contentEl = document.getElementById('lazy-loading-content');
+  const metaEl = document.getElementById('lazy-loading-meta');
+
+  if (data.total === 0) {
+    contentEl.textContent = '(画像が見つかりません)';
+    metaEl.textContent = '';
+    return;
+  }
+
+  if (data.checkedCount === 0) {
+    contentEl.textContent = '画像が1枚のみのため対象外です';
+    metaEl.textContent = '';
+    return;
+  }
+
+  contentEl.textContent = data.missingLazyCount === 0
+    ? `2枚目以降の画像はすべて loading="lazy" が設定されています(対象${data.checkedCount}枚)`
+    : `loading="lazy" が未設定の画像: ${data.missingLazyCount}件(2枚目以降 全${data.checkedCount}枚中)`;
+
+  const sampleLines = data.missingLazySamples.length > 0
+    ? 'lazy未設定の画像(先頭5件):\n' + data.missingLazySamples
+        .map((img) => `${img.index}枚目: ${img.src}`)
+        .join('\n') + '\n'
+    : '';
+
+  metaEl.textContent = `${sampleLines}※ 最初の画像はファーストビュー表示の可能性があるため対象外にしています`;
+}
+
 function renderFavicon(data) {
   setStatusBadge('favicon', data.status);
 
@@ -333,6 +364,13 @@ function buildImprovementPrompt(data) {
     ].join('\n'));
   }
 
+  if (data.lazyLoading.status !== 'ok') {
+    problems.push([
+      '画像の遅延読み込み',
+      `loading="lazy"が未設定の画像: ${data.lazyLoading.missingLazyCount}件(2枚目以降 全${data.lazyLoading.checkedCount}枚中)`,
+    ].join('\n'));
+  }
+
   if (data.favicon.status !== 'ok') {
     problems.push(['favicon', 'faviconが見つかりません。設定を検討してください。'].join('\n'));
   }
@@ -361,7 +399,7 @@ function buildImprovementPrompt(data) {
     return [
       `対象URL: ${data.url}`,
       '',
-      'このサイトは今回のチェック項目(title, meta description, 見出し, 画像alt, 画像フォーマット, favicon, OGP, Twitter Card, canonical, 構造化データ, meta robots)すべてで問題は見つかりませんでした。',
+      'このサイトは今回のチェック項目(title, meta description, 見出し, 画像alt, 画像フォーマット, 遅延読み込み, favicon, OGP, Twitter Card, canonical, 構造化データ, meta robots)すべてで問題は見つかりませんでした。',
     ].join('\n');
   }
 
@@ -430,6 +468,7 @@ form.addEventListener('submit', async (e) => {
     renderHeadings(data.headings);
     renderImages(data.images);
     renderImageFormats(data.imageFormats);
+    renderLazyLoading(data.lazyLoading);
     renderFavicon(data.favicon);
     renderOgp(data.ogp, data.url);
     renderTwitterCard(data.twitterCard, data.url);
