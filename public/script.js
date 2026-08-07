@@ -131,6 +131,58 @@ function renderFavicon(data) {
     : '';
 }
 
+function renderOgp(data, pageUrl) {
+  setStatusBadge('ogp', data.status);
+
+  const contentEl = document.getElementById('ogp-content');
+  const metaEl = document.getElementById('ogp-meta');
+
+  contentEl.textContent = '';
+
+  if (!data.exists) {
+    contentEl.textContent = '(OGPタグが設定されていません)';
+    metaEl.textContent = '';
+    return;
+  }
+
+  const preview = document.createElement('div');
+  preview.className = 'ogp-preview';
+
+  if (data.imageUrl && data.imageAccessible) {
+    const img = document.createElement('img');
+    img.className = 'ogp-image';
+    img.src = data.imageUrl;
+    img.alt = 'OGP画像プレビュー';
+    img.onerror = () => img.remove();
+    preview.append(img);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'ogp-preview-body';
+
+  const domain = document.createElement('div');
+  domain.className = 'ogp-domain';
+  try {
+    domain.textContent = new URL(data.url || pageUrl).hostname;
+  } catch {
+    domain.textContent = '';
+  }
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'ogp-title';
+  titleEl.textContent = data.title || '(og:title未設定)';
+
+  const descEl = document.createElement('div');
+  descEl.className = 'ogp-description';
+  descEl.textContent = data.description || '(og:description未設定)';
+
+  body.append(domain, titleEl, descEl);
+  preview.append(body);
+  contentEl.append(preview);
+
+  metaEl.textContent = data.issues.join('\n');
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -163,6 +215,7 @@ form.addEventListener('submit', async (e) => {
     renderHeadings(data.headings);
     renderImages(data.images);
     renderFavicon(data.favicon);
+    renderOgp(data.ogp, data.url);
 
     result.hidden = false;
   } catch (err) {

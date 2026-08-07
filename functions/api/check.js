@@ -155,6 +155,61 @@ async function checkFavicon($, targetUrl) {
   };
 }
 
+async function checkOgp($, targetUrl) {
+  const getMeta = (property) => $(`meta[property="${property}"]`).first().attr('content')?.trim() || '';
+
+  const title = getMeta('og:title');
+  const description = getMeta('og:description');
+  const image = getMeta('og:image');
+  const url = getMeta('og:url');
+  const type = getMeta('og:type');
+  const siteName = getMeta('og:site_name');
+
+  const issues = [];
+  if (!title) issues.push('og:titleが設定されていません');
+  if (!description) issues.push('og:descriptionが設定されていません');
+  if (!image) issues.push('og:imageが設定されていません');
+
+  let imageUrl = null;
+  let imageAccessible = false;
+  if (image) {
+    try {
+      imageUrl = new URL(image, targetUrl).toString();
+      imageAccessible = await urlExists(imageUrl);
+      if (!imageAccessible) issues.push('og:imageの画像を取得できません');
+    } catch {
+      imageUrl = null;
+      issues.push('og:imageのURL形式が正しくありません');
+    }
+  }
+
+  const exists = Boolean(title || description || image || url || type || siteName);
+  const hasCore = Boolean(title && description && image);
+
+  let status;
+  if (!exists) {
+    status = 'missing';
+  } else if (hasCore && imageAccessible) {
+    status = 'ok';
+  } else {
+    status = 'warn';
+  }
+
+  return {
+    exists,
+    title,
+    description,
+    image,
+    imageUrl,
+    imageAccessible,
+    url,
+    type,
+    siteName,
+    issues,
+    status,
+  };
+}
+
 async function fetchHtml(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -230,6 +285,7 @@ export async function onRequestPost({ request }) {
       headings: checkHeadings($),
       images: checkImages($),
       favicon: await checkFavicon($, targetUrl),
+      ogp: await checkOgp($, targetUrl),
     };
 
     return jsonResponse(result, 200);
