@@ -154,4 +154,10 @@ h1 {
   font-size: 0.8rem;
   color: var(--color-muted);
   margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+#headings-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
 }

@@ -46,7 +46,7 @@ function renderHeadings(data) {
     contentEl.textContent = '(見出しタグが見つかりません)';
   } else {
     contentEl.textContent = data.outline
-      .map((h) => `${'　'.repeat(h.level - 1)}H${h.level}: ${h.text || '(テキストなし)'}`)
+      .map((h) => `${'  '.repeat(h.level - 1)}<h${h.level}>${h.text || '(テキストなし)'}</h${h.level}>`)
       .join('\n');
   }
 
@@ -67,16 +67,15 @@ function renderImages(data) {
 
   if (data.total === 0) {
     contentEl.textContent = '(画像が見つかりません)';
-  } else if (data.missingAltSamples.length === 0) {
-    contentEl.textContent = 'すべての画像にaltが設定されています';
   } else {
-    contentEl.textContent = data.missingAltSamples
-      .map((img) => `${img.index}枚目: ${img.src}`)
-      .join('\n');
+    contentEl.textContent = `alt属性が設定されていない画像タグ: ${data.missingAltCount}件(全${data.total}枚中)`;
   }
 
-  metaEl.textContent =
-    `画像数: ${data.total}枚 / alt未設定: ${data.missingAltCount}枚`;
+  metaEl.textContent = data.missingAltSamples.length > 0
+    ? 'alt未設定の画像(先頭5件):\n' + data.missingAltSamples
+        .map((img) => `${img.index}枚目: ${img.src}`)
+        .join('\n')
+    : '';
 }
 
 form.addEventListener('submit', async (e) => {
