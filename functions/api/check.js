@@ -1,6 +1,8 @@
 import * as cheerio from 'cheerio';
 
 const FETCH_TIMEOUT_MS = 10000;
+const FAVICON_TIMEOUT_MS = 5000;
+const USER_AGENT = 'Mozilla/5.0 (compatible; WebSiteCheckerBot/1.0)';
 
 // SEO上の目安となる文字数の範囲(一般的に言われている基準)
 const TITLE_MIN = 30;
@@ -97,6 +99,62 @@ function checkImages($) {
   return { total, missingAltCount, missingAltSamples, status };
 }
 
+async function urlExists(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FAVICON_TIMEOUT_MS);
+  try {
+    let res = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    if (res.status === 405 || res.status === 501) {
+      res = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: { 'User-Agent': USER_AGENT },
+      });
+    }
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function checkFavicon($, targetUrl) {
+  const href = $('link[rel~="icon"]').first().attr('href')?.trim();
+  const source = href ? 'link' : 'default';
+
+  let faviconUrl;
+  try {
+    faviconUrl = new URL(href || '/favicon.ico', targetUrl).toString();
+  } catch {
+    return { exists: false, url: null, source: null, status: 'missing' };
+  }
+
+  if (faviconUrl.startsWith('data:')) {
+    const hasContent = faviconUrl.split(',')[1]?.length > 0;
+    return {
+      exists: hasContent,
+      url: hasContent ? faviconUrl : null,
+      source,
+      status: hasContent ? 'ok' : 'missing',
+    };
+  }
+
+  const exists = await urlExists(faviconUrl);
+  return {
+    exists,
+    url: exists ? faviconUrl : null,
+    source,
+    status: exists ? 'ok' : 'missing',
+  };
+}
+
 async function fetchHtml(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -105,7 +163,7 @@ async function fetchHtml(url) {
       redirect: 'follow',
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; WebSiteCheckerBot/1.0)',
+        'User-Agent': USER_AGENT,
       },
     });
     if (!res.ok) {
@@ -171,6 +229,7 @@ export async function onRequestPost({ request }) {
       },
       headings: checkHeadings($),
       images: checkImages($),
+      favicon: await checkFavicon($, targetUrl),
     };
 
     return jsonResponse(result, 200);

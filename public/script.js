@@ -95,6 +95,42 @@ function renderImages(data) {
     : '';
 }
 
+function renderFavicon(data) {
+  setStatusBadge('favicon', data.status);
+
+  const contentEl = document.getElementById('favicon-content');
+  const metaEl = document.getElementById('favicon-meta');
+
+  contentEl.textContent = '';
+
+  if (!data.exists) {
+    contentEl.textContent = '(faviconが見つかりません)';
+    metaEl.textContent = '';
+    return;
+  }
+
+  const preview = document.createElement('div');
+  preview.className = 'favicon-preview';
+
+  const img = document.createElement('img');
+  img.src = data.url;
+  img.alt = 'faviconのプレビュー';
+  img.onerror = () => {
+    preview.textContent = '(画像を読み込めませんでした)';
+  };
+
+  const urlText = document.createElement('span');
+  urlText.className = 'favicon-url';
+  urlText.textContent = data.url;
+
+  preview.append(img, urlText);
+  contentEl.append(preview);
+
+  metaEl.textContent = data.source === 'default'
+    ? 'linkタグでの指定がないため、既定のfavicon.icoを確認しました'
+    : '';
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -126,6 +162,7 @@ form.addEventListener('submit', async (e) => {
     renderCheck('description', data.description);
     renderHeadings(data.headings);
     renderImages(data.images);
+    renderFavicon(data.favicon);
 
     result.hidden = false;
   } catch (err) {
