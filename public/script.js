@@ -95,6 +95,44 @@ function renderImages(data) {
     : '';
 }
 
+const FORMAT_LABELS = [
+  ['jpg', 'JPG'],
+  ['png', 'PNG'],
+  ['webp', 'WebP'],
+  ['avif', 'AVIF'],
+  ['gif', 'GIF'],
+  ['svg', 'SVG'],
+  ['other', 'その他'],
+];
+
+function renderImageFormats(data) {
+  setStatusBadge('image-formats', data.status);
+
+  const contentEl = document.getElementById('image-formats-content');
+  const metaEl = document.getElementById('image-formats-meta');
+
+  if (data.total === 0) {
+    contentEl.textContent = '(画像が見つかりません)';
+    metaEl.textContent = '';
+    return;
+  }
+
+  contentEl.textContent = FORMAT_LABELS
+    .filter(([key]) => data.counts[key] > 0)
+    .map(([key, label]) => `${label}: ${data.counts[key]}枚`)
+    .join(' / ');
+
+  if (data.legacyCount > 0) {
+    const sampleLines = data.legacySamples
+      .map((img) => `${img.index}枚目: ${img.src}`)
+      .join('\n');
+    metaEl.textContent =
+      `JPG/PNG画像が${data.legacyCount}枚あります。WebPに変換すると、画質を保ちながらファイルサイズを削減できます。\n${sampleLines}`;
+  } else {
+    metaEl.textContent = '';
+  }
+}
+
 function renderFavicon(data) {
   setStatusBadge('favicon', data.status);
 
@@ -227,6 +265,7 @@ form.addEventListener('submit', async (e) => {
     renderCheck('description', data.description);
     renderHeadings(data.headings);
     renderImages(data.images);
+    renderImageFormats(data.imageFormats);
     renderFavicon(data.favicon);
     renderOgp(data.ogp, data.url);
     renderCanonical(data.canonical);

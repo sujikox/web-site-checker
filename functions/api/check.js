@@ -99,6 +99,41 @@ function checkImages($) {
   return { total, missingAltCount, missingAltSamples, status };
 }
 
+function getImageExtension(src) {
+  if (!src || src.startsWith('data:')) return 'other';
+  const path = src.split('?')[0].split('#')[0];
+  const match = path.match(/\.([a-zA-Z0-9]+)$/);
+  return match ? match[1].toLowerCase() : 'other';
+}
+
+function checkImageFormats($) {
+  const images = $('img');
+  const total = images.length;
+  const counts = { jpg: 0, png: 0, webp: 0, avif: 0, gif: 0, svg: 0, other: 0 };
+  const legacySamples = [];
+
+  images.each((index, el) => {
+    const src = $(el).attr('src') || '';
+    const ext = getImageExtension(src);
+    const key = ext === 'jpeg' ? 'jpg' : ext;
+
+    if (key in counts) {
+      counts[key] += 1;
+    } else {
+      counts.other += 1;
+    }
+
+    if ((key === 'jpg' || key === 'png') && legacySamples.length < 5) {
+      legacySamples.push({ index: index + 1, src });
+    }
+  });
+
+  const legacyCount = counts.jpg + counts.png;
+  const status = legacyCount > 0 ? 'warn' : 'ok';
+
+  return { total, counts, legacyCount, legacySamples, status };
+}
+
 async function urlExists(url) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FAVICON_TIMEOUT_MS);
@@ -334,6 +369,7 @@ export async function onRequestPost({ request }) {
       },
       headings: checkHeadings($),
       images: checkImages($),
+      imageFormats: checkImageFormats($),
       favicon: await checkFavicon($, targetUrl),
       ogp: await checkOgp($, targetUrl),
       canonical: await checkCanonical($, targetUrl),
